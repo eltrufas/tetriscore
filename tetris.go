@@ -241,11 +241,11 @@ type Piece struct {
 }
 
 type InputState struct {
-	Left, Right, Up, Down, Space bool
+	Left, Right, Up, Down, Space, Shift, Enter bool
 }
 
 type InputTimers struct {
-	Left, Right, Up, Down, Space int
+	Left, Right, Up, Down, Space, Shift, Enter int
 }
 
 var WallKicks [8][5]Vec2 = [8][5]Vec2{
@@ -382,6 +382,7 @@ type Tetris struct {
 	FlagLoss		 bool
 	Level			 int
 	Tetris			 bool
+	HoldPiece		 int
 }
 
 func (t *Tetris) NextPiece() int {
@@ -414,6 +415,12 @@ func (t *Tetris) Update(is InputState) {
 	}
 
 	t.DropTimer += t.Gravity
+}
+
+func (t *Tetris) holdAPiece() {
+	if t.It.Shift == 1 {
+		t.HoldPiece = t.CurrentPiece.TetrominoType
+	}
 }
 
 func (t *Tetris) applyMovement() {
@@ -479,6 +486,12 @@ func (t *Tetris) updateInputTimers(is InputState) {
 		t.It.Space++
 	} else {
 		t.It.Space = 0
+	}
+
+	if is.Enter {
+		t.It.Enter++
+	} else {
+		t.It.Enter = 0
 	}
 }
 
@@ -626,6 +639,8 @@ func (t *Tetris) score(lines int)int{
 			}else{
 				return t.Level * 1200
 			}
+		default:
+			return 0
 	}
 
 }
