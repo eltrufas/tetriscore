@@ -5,6 +5,6 @@ Funciones por implementar:
 - ~~Borrar línea~~
 - ~~Límite superior de piezas~~
 - ~~Puntuación~~
-- Velocidad de níveles
-- Niveles
-- Hold Piece
+- ~~Velocidad de níveles~~
+- ~~Niveles~~
+- ~~Hold Piece~~
