@@ -397,6 +397,7 @@ type Tetris struct {
 	Level            int
 	Tetris           bool
 	HoldPiece        int
+  ClearLines       int
 }
 
 func (t *Tetris) NextPiece() int {
@@ -505,8 +506,6 @@ func (t *Tetris) rotate(direction int) bool {
 
 	state := (p.State + direction) % 4
 
-	fmt.Println(state)
-
 	return t.tryRotations(p, state, wallKicks)
 }
 
@@ -547,7 +546,6 @@ func (t *Tetris) stopLockTimer() {
 
 func (t *Tetris) updateLockTimer() {
 	if t.lockTimerStarted {
-		fmt.Println(t.lockTimer)
 		t.lockTimer += Timestep
 		if t.lockTimer >= t.LockTime {
 			t.lockPiece()
@@ -588,6 +586,7 @@ func (t *Tetris) lockPiece() {
 
 func (t *Tetris) cleanLine() {
 	flag := false
+  lines := 0
 	for i := 0; i < 220; i += 10 {
 		flag = true
 		for j := 0; j < 10; j++ {
@@ -596,11 +595,35 @@ func (t *Tetris) cleanLine() {
 			}
 		}
 		if flag == true {
+      lines++
 			for j := i + 9; j >= 10; j-- {
 				t.Board[j] = t.Board[j-10]
 			}
 		}
 	}
+  t.score(lines)
+  t.upgradeLevel(lines)
+}
+
+func (t *Tetris) upgradeLevel(lines int) {
+  switch lines {
+    case 1:
+      t.ClearLines++
+      break
+    case 2:
+      t.ClearLines += 3
+      break
+    case 3:
+      t.ClearLines += 5
+      break
+    case 4:
+      t.ClearLines += 8
+      break
+  }
+  if t.ClearLines >= 5*t.Level {
+      t.Level++
+      t.Gravity *= 1.1
+    }
 }
 
 func (t *Tetris) checkLoss() {
@@ -700,6 +723,7 @@ func CreateTetris() *Tetris {
 	t.NextIndex = 0
 	t.Gravity = 0.1
 	t.LockTime = 500
+  t.Level = 1
 
 	t.spawnNextPiece()
 
