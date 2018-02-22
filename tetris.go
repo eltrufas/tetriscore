@@ -1,7 +1,6 @@
 package tetriscore
 
 import (
-	"fmt"
 	"math/rand"
 )
 
@@ -50,6 +49,7 @@ var IStates [4][16]int = [4][16]int{
 		0, 1, 0, 0,
 	},
 }
+
 // J
 var JStates [4][16]int = [4][16]int{
 	{
@@ -265,6 +265,7 @@ type InputTimers struct {
 
 // Representa la entrada en una actualización
 type InputState uint32
+
 // Representa el tiempo que han estado activas las entradas
 type InputTimers [32]int
 
@@ -407,14 +408,14 @@ type Tetris struct {
 	Gravity          float32
 	DropTimer        float32 // Tiempo que falta para avanzar un pixel
 	LockTime         float32 // Tiempo para inmovilizar una pieza
-	lockTimerStarted bool // Indica si se inició el contador de movilización
+	lockTimerStarted bool    // Indica si se inició el contador de movilización
 	lockTimer        float32 // Contador
 	It               InputTimers
 	FlagLoss         bool // Para saber si el jugador perdió
 	Level            int
 	Tetris           bool
 	HoldPiece        int // Pieza que detiene el jugador
-  ClearLines       int // Líneas que se han limpiado bajo la logica de tetris
+	ClearLines       int // Líneas que se han limpiado bajo la logica de tetris
 }
 
 // Función que regresa la siguiente pieza
@@ -438,6 +439,7 @@ func (t *Tetris) ShuffleQueue() {
 // Actualizar el tablero
 func (t *Tetris) Update(is InputState) {
 	t.updateInputTimers(is)
+	t.checkHold()
 	t.applyMovement()
 	t.updateLockTimer()
 
@@ -452,9 +454,17 @@ func (t *Tetris) Update(is InputState) {
 }
 
 // Guardar una pieza
-func (t *Tetris) holdAPiece() {
+func (t *Tetris) checkHold() {
 	if t.It[Shift] == 1 {
+		oldHold := t.HoldPiece
 		t.HoldPiece = t.CurrentPiece.TetrominoType
+
+		if oldHold >= 0 {
+			t.CurrentPiece.TetrominoType = oldHold
+			t.resetPiece()
+		} else {
+			t.spawnNextPiece()
+		}
 	}
 }
 
@@ -519,7 +529,7 @@ func (t *Tetris) rotate(direction int) bool {
 		cc = 1
 	}
 
-  // Evita que las piezas se salgan del tablero utilizando wall kick
+	// Evita que las piezas se salgan del tablero utilizando wall kick
 	var wallKicks *[5]Vec2
 	if p.TetrominoType == 0 {
 		wallKicks = &IWallKicks[2*p.State+cc]
@@ -582,9 +592,14 @@ func (t *Tetris) spawnNextPiece() {
 	t.CurrentPiece.TetrominoType = t.PieceQueue[t.NextIndex]
 	t.NextIndex = (t.NextIndex + 1) % 14
 
+	t.resetPiece()
+}
+
+func (t *Tetris) resetPiece() {
 	t.CurrentPiece.X = 3
 	t.CurrentPiece.Y = 0
 	t.CurrentPiece.State = 0
+
 }
 
 // Sella la pieza en la estructura
@@ -613,7 +628,7 @@ func (t *Tetris) lockPiece() {
 // Limpia las líneas cuando se completan
 func (t *Tetris) cleanLine() {
 	flag := false
-  lines := 0
+	lines := 0
 	for i := 0; i < 220; i += 10 {
 		flag = true
 		for j := 0; j < 10; j++ {
@@ -622,38 +637,36 @@ func (t *Tetris) cleanLine() {
 			}
 		}
 		if flag == true {
-      lines++
+			lines++
 			for j := i + 9; j >= 10; j-- {
 				t.Board[j] = t.Board[j-10]
 			}
 		}
 	}
-  t.score(lines)
-  t.upgradeLevel(lines)
+	t.score(lines)
+	t.upgradeLevel(lines)
 }
 
 // Actualiza el nível en el que está el jugador
 func (t *Tetris) upgradeLevel(lines int) {
-  switch lines {
-    case 1:
-      t.ClearLines++
-      break
-    case 2:
-      t.ClearLines += 3
-      break
-    case 3:
-      t.ClearLines += 5
-      break
-    case 4:
-      t.ClearLines += 8
-      break
-  }
-  // Los níveles aumentan level * 5 líneas completadas
-  if t.ClearLines >= 5*t.Level {
-      t.Level++
-      // Aumenta la velocidad de caída de las piezas
-      t.Gravity *= 1.1
-    }
+	switch lines {
+	case 1:
+		t.ClearLines++
+		break
+	case 2:
+		t.ClearLines += 3
+		break
+	case 3:
+		t.ClearLines += 5
+		break
+	case 4:
+		t.ClearLines += 8
+		break
+	}
+	if t.ClearLines >= 5*t.Level {
+		t.Level++
+		t.Gravity *= 1.1
+	}
 }
 
 // Verifica si el jugador perdió
@@ -670,29 +683,28 @@ func (t *Tetris) checkLoss() {
 // Actualiza el score del jugador
 func (t *Tetris) score(lines int) int {
 	switch lines {
-  // Una línea vale 100
+	// Una línea vale 100
 	case 1:
 		return t.Level * 100
-  // 2 líneas valen 300
-  case 2:
+	// 2 líneas valen 300
+	case 2:
 		return t.Level * 300
-  // 3 líneas valen 500
+		// 3 líneas valen 500
 	case 3:
 		return t.Level * 500
-  // 4 líneas valen 800
+		// 4 líneas valen 800
 	case 4:
 		if t.Tetris == false {
 			return t.Level * 800
 		} else {
-    // Si la jugada anterior se limpiaron 4 líneas y esta jugada también
-    // la puntuación se multiplica por 1200
+			// Si la jugada anterior se limpiaron 4 líneas y esta jugada también
+			// la puntuación se multiplica por 1200
 			return t.Level * 1200
 		}
-  // No se limpió ninguna línea
+		// No se limpió ninguna línea
 	default:
 		return 0
 	}
-
 }
 
 // Revisa si la pieza actual puede inmovilizarse en ese lugar
@@ -761,11 +773,12 @@ func CreateTetris() *Tetris {
 		t.PieceQueue[i], t.PieceQueue[j] = t.PieceQueue[j], t.PieceQueue[i]
 		t.PieceQueue[i+7], t.PieceQueue[k] = t.PieceQueue[j], t.PieceQueue[i+7]
 	}
-  // Valores de inicialización
+	// Valores de inicialización
 	t.NextIndex = 0
 	t.Gravity = 0.1
 	t.LockTime = 500
-  t.Level = 1
+	t.Level = 1
+	t.HoldPiece = -1
 
 	t.spawnNextPiece()
 
