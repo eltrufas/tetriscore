@@ -1,7 +1,6 @@
 package tetriscore
 
 import (
-	"fmt"
 	"math/rand"
 )
 
@@ -397,7 +396,7 @@ type Tetris struct {
 	Level            int
 	Tetris           bool
 	HoldPiece        int
-  ClearLines       int
+	ClearLines       int
 }
 
 func (t *Tetris) NextPiece() int {
@@ -419,6 +418,7 @@ func (t *Tetris) ShuffleQueue() {
 
 func (t *Tetris) Update(is InputState) {
 	t.updateInputTimers(is)
+	t.checkHold()
 	t.applyMovement()
 	t.updateLockTimer()
 
@@ -432,9 +432,17 @@ func (t *Tetris) Update(is InputState) {
 	t.DropTimer += t.Gravity
 }
 
-func (t *Tetris) holdAPiece() {
+func (t *Tetris) checkHold() {
 	if t.It[Shift] == 1 {
+		oldHold := t.HoldPiece
 		t.HoldPiece = t.CurrentPiece.TetrominoType
+
+		if oldHold >= 0 {
+			t.CurrentPiece.TetrominoType = oldHold
+			t.resetPiece()
+		} else {
+			t.spawnNextPiece()
+		}
 	}
 }
 
@@ -556,9 +564,14 @@ func (t *Tetris) spawnNextPiece() {
 	t.CurrentPiece.TetrominoType = t.PieceQueue[t.NextIndex]
 	t.NextIndex = (t.NextIndex + 1) % 14
 
+	t.resetPiece()
+}
+
+func (t *Tetris) resetPiece() {
 	t.CurrentPiece.X = 3
 	t.CurrentPiece.Y = 0
 	t.CurrentPiece.State = 0
+
 }
 
 func (t *Tetris) lockPiece() {
@@ -585,7 +598,7 @@ func (t *Tetris) lockPiece() {
 
 func (t *Tetris) cleanLine() {
 	flag := false
-  lines := 0
+	lines := 0
 	for i := 0; i < 220; i += 10 {
 		flag = true
 		for j := 0; j < 10; j++ {
@@ -594,35 +607,35 @@ func (t *Tetris) cleanLine() {
 			}
 		}
 		if flag == true {
-      lines++
+			lines++
 			for j := i + 9; j >= 10; j-- {
 				t.Board[j] = t.Board[j-10]
 			}
 		}
 	}
-  t.score(lines)
-  t.upgradeLevel(lines)
+	t.score(lines)
+	t.upgradeLevel(lines)
 }
 
 func (t *Tetris) upgradeLevel(lines int) {
-  switch lines {
-    case 1:
-      t.ClearLines++
-      break
-    case 2:
-      t.ClearLines += 3
-      break
-    case 3:
-      t.ClearLines += 5
-      break
-    case 4:
-      t.ClearLines += 8
-      break
-  }
-  if t.ClearLines >= 5*t.Level {
-      t.Level++
-      t.Gravity *= 1.1
-    }
+	switch lines {
+	case 1:
+		t.ClearLines++
+		break
+	case 2:
+		t.ClearLines += 3
+		break
+	case 3:
+		t.ClearLines += 5
+		break
+	case 4:
+		t.ClearLines += 8
+		break
+	}
+	if t.ClearLines >= 5*t.Level {
+		t.Level++
+		t.Gravity *= 1.1
+	}
 }
 
 func (t *Tetris) checkLoss() {
@@ -652,7 +665,6 @@ func (t *Tetris) score(lines int) int {
 	default:
 		return 0
 	}
-
 }
 
 func (t *Tetris) Collides(p Piece) bool {
@@ -722,7 +734,8 @@ func CreateTetris() *Tetris {
 	t.NextIndex = 0
 	t.Gravity = 0.1
 	t.LockTime = 500
-  t.Level = 1
+	t.Level = 1
+	t.HoldPiece = -1
 
 	t.spawnNextPiece()
 
