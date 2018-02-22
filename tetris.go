@@ -483,7 +483,6 @@ func (t *Tetris) applyMovement() {
 		}
 
 		t.lockPiece()
-		t.spawnNextPiece()
 	}
 
 	if t.lockTimerStarted && (t.CurrentPiece.X != initPiece.X ||
