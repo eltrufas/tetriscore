@@ -379,6 +379,7 @@ type Tetris struct {
 	lockTimer        float32
 	ToClear          [20]bool
 	It               InputTimers
+	FlagLoss		 bool
 }
 
 func (t *Tetris) NextPiece() int {
@@ -599,13 +600,18 @@ func (t *Tetris) cleanLine(){
 	}
 }
 
-func (t *Tetris) checkLoss()bool{
+func (t *Tetris) checkLoss(){
 	for i := 0; i < 20; i++{
-		if t.Board[i] == 1 {
-			return true
+		if t.Board[i] != Empty {
+			t.FlagLoss = true
+			return
 		}
 	}
-	return false
+	t.FlagLoss = false
+}
+
+func (t *Tetris) score(){
+
 }
 
 func (t *Tetris) Collides(p Piece) bool {
@@ -677,9 +683,7 @@ func CreateTetris() *Tetris {
 	t.Gravity = 0.1
 	t.LockTime = 500
 
-	t.CurrentPiece.X = 7
-	t.CurrentPiece.Y = 4
-	t.CurrentPiece.State = 1
+	t.spawnNextPiece()
 
 	return &t
 }
