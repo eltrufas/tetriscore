@@ -380,6 +380,8 @@ type Tetris struct {
 	ToClear          [20]bool
 	It               InputTimers
 	FlagLoss		 bool
+	Level			 int
+	Tetris			 bool
 }
 
 func (t *Tetris) NextPiece() int {
@@ -610,7 +612,21 @@ func (t *Tetris) checkLoss(){
 	t.FlagLoss = false
 }
 
-func (t *Tetris) score(){
+func (t *Tetris) score(lines int)int{
+	switch lines {
+		case 1:
+			return t.Level * 100
+		case 2:
+			return t.Level * 200
+		case 3:
+			return t.Level * 300
+		case 4:
+			if t.Tetris == false {
+				return t.Level * 800
+			}else{
+				return t.Level * 1200
+			}
+	}
 
 }
 
@@ -659,7 +675,6 @@ func (t *Tetris) SoftDrop() bool {
 		t.CurrentPiece.Y--
 		return false
 	}
-
 	return true
 }
 

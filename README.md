@@ -4,5 +4,7 @@ Implementación de la logica del juego Tetris, para usarse para en interfaces gr
 Funciones por implementar:
 - ~~Borrar línea~~
 - ~~Límite superior de piezas~~
-- Puntuación
+- ~~Puntuación~~
 - Velocidad de níveles
+- Niveles
+- Hold Piece
