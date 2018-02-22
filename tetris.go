@@ -367,7 +367,7 @@ var IWallKicks [8][5]Vec2 = [8][5]Vec2{
 }
 
 type Tetris struct {
-	Board            [220]Block
+	Board            [220]Block //10*22
 	CurrentPiece     Piece
 	Score            int
 	PieceQueue       [14]int
@@ -577,8 +577,35 @@ func (t *Tetris) lockPiece() {
 	}
 	t.lockTimerStarted = false
 
+	t.cleanLine()
+	t.checkLoss()
 	t.spawnNextPiece()
+}
 
+func (t *Tetris) cleanLine(){
+	flag := false
+	for i := 0; i < 220; i += 10 {
+		flag = true
+		for j := 0; j < 10; j++ {
+			if t.Board[i+j] == 0 {
+				flag = false
+			}
+		}
+		if flag == true {
+			for j := i+9; j >= 10; j-- {
+				t.Board[j] = t.Board[j-10]
+			}
+		}
+	}
+}
+
+func (t *Tetris) checkLoss()bool{
+	for i := 0; i < 20; i++{
+		if t.Board[i] == 1 {
+			return true
+		}
+	}
+	return false
 }
 
 func (t *Tetris) Collides(p Piece) bool {
