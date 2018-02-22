@@ -240,6 +240,7 @@ type Piece struct {
 	TetrominoType int
 }
 
+/*
 type InputState struct {
 	Left, Right, Up, Down, Space, Shift, Enter bool
 }
@@ -247,6 +248,19 @@ type InputState struct {
 type InputTimers struct {
 	Left, Right, Up, Down, Space, Shift, Enter int
 }
+*/
+
+type InputState uint32
+type InputTimers [32]int
+
+const (
+	Left InputState = iota
+	Right
+	Up
+	Down
+	Space
+	Shift
+)
 
 var WallKicks [8][5]Vec2 = [8][5]Vec2{
 	{
@@ -379,10 +393,10 @@ type Tetris struct {
 	lockTimer        float32
 	ToClear          [20]bool
 	It               InputTimers
-	FlagLoss		 bool
-	Level			 int
-	Tetris			 bool
-	HoldPiece		 int
+	FlagLoss         bool
+	Level            int
+	Tetris           bool
+	HoldPiece        int
 }
 
 func (t *Tetris) NextPiece() int {
@@ -418,7 +432,7 @@ func (t *Tetris) Update(is InputState) {
 }
 
 func (t *Tetris) holdAPiece() {
-	if t.It.Shift == 1 {
+	if t.It[Shift] == 1 {
 		t.HoldPiece = t.CurrentPiece.TetrominoType
 	}
 }
@@ -426,23 +440,23 @@ func (t *Tetris) holdAPiece() {
 func (t *Tetris) applyMovement() {
 	initPiece := t.CurrentPiece
 
-	if t.It.Left == 1 || t.It.Left > 15 {
+	if t.It[Left] == 1 || t.It[Left] > 15 {
 		t.moveLeft()
 	}
 
-	if t.It.Right == 1 || t.It.Right > 15 {
+	if t.It[Right] == 1 || t.It[Right] > 15 {
 		t.moveRight()
 	}
 
-	if t.It.Down == 1 || t.It.Down > 15 {
+	if t.It[Down] == 1 || t.It[Down] > 15 {
 		t.SoftDrop()
 	}
 
-	if t.It.Up == 1 {
+	if t.It[Up] == 1 {
 		t.rotate(Clockwise)
 	}
 
-	if t.It.Space == 1 {
+	if t.It[Space] == 1 {
 		for t.SoftDrop() {
 		}
 
@@ -458,40 +472,14 @@ func (t *Tetris) applyMovement() {
 }
 
 func (t *Tetris) updateInputTimers(is InputState) {
-	if is.Left {
-		t.It.Left++
-	} else {
-		t.It.Left = 0
-	}
-
-	if is.Right {
-		t.It.Right++
-	} else {
-		t.It.Right = 0
-	}
-
-	if is.Down {
-		t.It.Down++
-	} else {
-		t.It.Down = 0
-	}
-
-	if is.Up {
-		t.It.Up++
-	} else {
-		t.It.Up = 0
-	}
-
-	if is.Space {
-		t.It.Space++
-	} else {
-		t.It.Space = 0
-	}
-
-	if is.Enter {
-		t.It.Enter++
-	} else {
-		t.It.Enter = 0
+	var i InputState
+	for i = 0; i < 32; i++ {
+		var m InputState = 1 << i
+		if (is & m) > 0 {
+			t.It[i]++
+		} else {
+			t.It[i] = 0
+		}
 	}
 }
 
@@ -598,7 +586,7 @@ func (t *Tetris) lockPiece() {
 	t.spawnNextPiece()
 }
 
-func (t *Tetris) cleanLine(){
+func (t *Tetris) cleanLine() {
 	flag := false
 	for i := 0; i < 220; i += 10 {
 		flag = true
@@ -608,15 +596,15 @@ func (t *Tetris) cleanLine(){
 			}
 		}
 		if flag == true {
-			for j := i+9; j >= 10; j-- {
+			for j := i + 9; j >= 10; j-- {
 				t.Board[j] = t.Board[j-10]
 			}
 		}
 	}
 }
 
-func (t *Tetris) checkLoss(){
-	for i := 0; i < 20; i++{
+func (t *Tetris) checkLoss() {
+	for i := 0; i < 20; i++ {
 		if t.Board[i] != Empty {
 			t.FlagLoss = true
 			return
@@ -625,22 +613,22 @@ func (t *Tetris) checkLoss(){
 	t.FlagLoss = false
 }
 
-func (t *Tetris) score(lines int)int{
+func (t *Tetris) score(lines int) int {
 	switch lines {
-		case 1:
-			return t.Level * 100
-		case 2:
-			return t.Level * 200
-		case 3:
-			return t.Level * 300
-		case 4:
-			if t.Tetris == false {
-				return t.Level * 800
-			}else{
-				return t.Level * 1200
-			}
-		default:
-			return 0
+	case 1:
+		return t.Level * 100
+	case 2:
+		return t.Level * 200
+	case 3:
+		return t.Level * 300
+	case 4:
+		if t.Tetris == false {
+			return t.Level * 800
+		} else {
+			return t.Level * 1200
+		}
+	default:
+		return 0
 	}
 
 }
