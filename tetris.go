@@ -459,6 +459,8 @@ func (t *Tetris) checkHold() {
 		oldHold := t.HoldPiece
 		t.HoldPiece = t.CurrentPiece.TetrominoType
 
+		t.stopLockTimer()
+
 		if oldHold >= 0 {
 			t.CurrentPiece.TetrominoType = oldHold
 			t.resetPiece()
@@ -591,6 +593,9 @@ func (t *Tetris) updateLockTimer() {
 func (t *Tetris) spawnNextPiece() {
 	t.CurrentPiece.TetrominoType = t.PieceQueue[t.NextIndex]
 	t.NextIndex = (t.NextIndex + 1) % 14
+	if t.NextIndex%7 == 0 {
+		t.ShuffleQueue()
+	}
 
 	t.resetPiece()
 }
