@@ -413,7 +413,9 @@ type Tetris struct {
 	It               InputTimers
 	FlagLoss         bool // Para saber si el jugador perdió
 	Level            int
+	speedUp          bool
 	Tetris           bool
+	Held             bool
 	HoldPiece        int // Pieza que detiene el jugador
 	ClearLines       int // Líneas que se han limpiado bajo la logica de tetris
 }
@@ -450,12 +452,23 @@ func (t *Tetris) Update(is InputState) {
 		}
 	}
 
-	t.DropTimer += t.Gravity
+	var multiplier float32 = 1.0
+	if t.speedUp {
+		multiplier = 4.0
+	}
+
+	t.DropTimer += multiplier * t.Gravity
 }
 
 // Guardar una pieza
 func (t *Tetris) checkHold() {
 	if t.It[Shift] == 1 {
+		if t.Held {
+			return
+		}
+
+		t.Held = true
+
 		oldHold := t.HoldPiece
 		t.HoldPiece = t.CurrentPiece.TetrominoType
 
@@ -482,9 +495,7 @@ func (t *Tetris) applyMovement() {
 		t.moveRight()
 	}
 
-	if t.It[Down] == 1 || t.It[Down] > 15 {
-		t.SoftDrop()
-	}
+	t.speedUp = t.It[Down] > 0
 
 	if t.It[Up] == 1 {
 		t.rotate(Clockwise)
@@ -624,6 +635,7 @@ func (t *Tetris) lockPiece() {
 		}
 	}
 	t.lockTimerStarted = false
+	t.Held = false
 
 	t.cleanLine()
 	t.checkLoss()
