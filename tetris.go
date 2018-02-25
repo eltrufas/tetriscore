@@ -621,6 +621,9 @@ func (t *Tetris) spawnNextPiece() {
 	}
 
 	t.resetPiece()
+	if t.Collides(t.CurrentPiece) {
+		t.FlagLoss = true
+	}
 }
 
 func (t *Tetris) resetPiece() {
@@ -636,12 +639,18 @@ func (t *Tetris) lockPiece() {
 	mask := Tetrominos[p.TetrominoType][p.State]
 	color := TetrominoColors[p.TetrominoType]
 
+	t.FlagLoss = true
+
 	for i := 0; i < 16; i++ {
 		if mask[i] == 1 {
 			y := p.Y + i/4
 			x := p.X + i%4
 
 			j := x + y*10
+
+			if j >= 20 {
+				t.FlagLoss = false
+			}
 
 			t.Board[j] = color
 		}
@@ -650,13 +659,12 @@ func (t *Tetris) lockPiece() {
 	t.Held = false
 
 	t.cleanLine()
-	t.checkLoss()
 	t.spawnNextPiece()
 }
 
 // Limpia las líneas cuando se completan
 func (t *Tetris) cleanLine() {
-	flag := false
+	var flag bool
 	lines := 0
 	for i := 0; i < 220; i += 10 {
 		flag = true
@@ -698,17 +706,6 @@ func (t *Tetris) upgradeLevel(lines int) {
 		// Aumenta la velocidad de caída de las piezas
 		t.Gravity *= 1.08
 	}
-}
-
-// Verifica si el jugador perdió
-func (t *Tetris) checkLoss() {
-	for i := 0; i < 20; i++ {
-		if t.Board[i] != Empty {
-			t.FlagLoss = true
-			return
-		}
-	}
-	t.FlagLoss = false
 }
 
 // Actualiza el score del jugador
