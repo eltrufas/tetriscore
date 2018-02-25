@@ -483,15 +483,19 @@ func (t *Tetris) checkHold() {
 	}
 }
 
+func shouldMove(timer int) bool {
+	return timer == 1 || (timer > 5 && timer%3 == 0)
+}
+
 // Función que hace inputs
 func (t *Tetris) applyMovement() {
 	initPiece := t.CurrentPiece
 
-	if t.It[Left]%2 == 1 {
+	if shouldMove(t.It[Left]) {
 		t.moveLeft()
 	}
 
-	if t.It[Right]%2 == 1 {
+	if shouldMove(t.It[Right]) {
 		t.moveRight()
 	}
 
