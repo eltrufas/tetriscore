@@ -447,7 +447,7 @@ func (t *Tetris) Update(is InputState) {
 
 	for t.DropTimer >= 1. {
 		t.DropTimer--
-		if !t.SoftDrop() {
+		if !t.SoftDrop(&t.CurrentPiece) {
 			t.startLockTimer()
 		}
 	}
@@ -502,7 +502,7 @@ func (t *Tetris) applyMovement() {
 	}
 
 	if t.It[Space] == 1 {
-		for t.SoftDrop() {
+		for t.SoftDrop(&t.CurrentPiece) {
 		}
 
 		t.lockPiece()
@@ -526,6 +526,14 @@ func (t *Tetris) updateInputTimers(is InputState) {
 			t.It[i] = 0
 		}
 	}
+}
+
+func (t *Tetris) GhostPiece() Piece {
+	gp := t.CurrentPiece
+	for t.SoftDrop(&gp) {
+	}
+
+	return gp
 }
 
 const (
@@ -766,11 +774,11 @@ func (t *Tetris) moveLeft() {
 }
 
 // Caída normal
-func (t *Tetris) SoftDrop() bool {
-	t.CurrentPiece.Y++
+func (t *Tetris) SoftDrop(p *Piece) bool {
+	p.Y++
 
-	if t.Collides(t.CurrentPiece) {
-		t.CurrentPiece.Y--
+	if t.Collides(*p) {
+		p.Y--
 		return false
 	}
 	return true
