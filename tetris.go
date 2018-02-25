@@ -487,11 +487,11 @@ func (t *Tetris) checkHold() {
 func (t *Tetris) applyMovement() {
 	initPiece := t.CurrentPiece
 
-	if t.It[Left] == 1 || t.It[Left] > 15 {
+	if t.It[Left]%2 == 1 {
 		t.moveLeft()
 	}
 
-	if t.It[Right] == 1 || t.It[Right] > 15 {
+	if t.It[Right]%2 == 1 {
 		t.moveRight()
 	}
 
