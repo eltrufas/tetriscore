@@ -221,12 +221,12 @@ var ZStates [4][16]int = [4][16]int{
 // Arreglo con todas las piezas
 var Tetrominos [7]*[4][16]int = [7]*[4][16]int{
 	&IStates,
+	&OStates,
+	&TStates,
+	&SStates,
+	&ZStates,
 	&JStates,
 	&LStates,
-	&OStates,
-	&SStates,
-	&TStates,
-	&ZStates,
 }
 
 // Colores de las piezas
@@ -277,6 +277,7 @@ const (
 	Down
 	Space
 	Shift
+	Zed
 )
 
 // Vectores para los wall kicks en rotaciones
@@ -484,7 +485,7 @@ func (t *Tetris) checkHold() {
 }
 
 func shouldMove(timer int) bool {
-	return timer == 1 || (timer > 5 && timer%3 == 0)
+	return timer == 1 || (timer > 5 && timer%5 == 0)
 }
 
 // Función que hace inputs
@@ -503,6 +504,10 @@ func (t *Tetris) applyMovement() {
 
 	if t.It[Up] == 1 {
 		t.rotate(Clockwise)
+	}
+
+	if t.It[Zed] == 1 {
+		t.rotate(CounterClockwise)
 	}
 
 	if t.It[Space] == 1 {
