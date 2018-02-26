@@ -229,7 +229,7 @@ var Tetrominos [7]*[4][16]int = [7]*[4][16]int{
 	&ZStates,
 }
 
-// Colores de las piezas
+// Colores de las piezas 
 var TetrominoColors [7]Block = [7]Block{
 	Cyan,
 	Yellow,
@@ -667,7 +667,7 @@ func (t *Tetris) checkLoss() {
 	t.FlagLoss = false
 }
 
-// Actualiza el score del jugador
+// Actualiza el puntaje del jugador
 func (t *Tetris) score(lines int) int {
 	switch lines {
   // Una línea vale 100
@@ -763,7 +763,7 @@ func CreateTetris() *Tetris {
 	}
   // Valores de inicialización
 	t.NextIndex = 0
-	t.Gravity = 0.1
+	t.Gravity = 0.07
 	t.LockTime = 500
   t.Level = 1
 
