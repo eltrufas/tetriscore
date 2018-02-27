@@ -452,7 +452,10 @@ func (t *Tetris) Update(is InputState) {
 		t.DropTimer--
 		if !t.SoftDrop(&t.CurrentPiece) {
 			t.startLockTimer()
-		}
+		} else {
+      t.Tspin = false
+      t.Score += 1
+    }
 	}
 
 	var multiplier float32 = 1.0
@@ -839,8 +842,6 @@ func (t *Tetris) SoftDrop(p *Piece) bool {
 		p.Y--
 		return false
 	}
-  t.Tspin = false
-  t.Score += 1
 	return true
 }
 
@@ -862,6 +863,7 @@ func CreateTetris() *Tetris {
 	}
 	// Valores de inicialización
 	t.NextIndex = 0
+  t.Score = 0
 	t.Gravity = 0.07
 	t.LockTime = 500
 	t.Level = 1
