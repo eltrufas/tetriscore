@@ -229,7 +229,7 @@ var Tetrominos [7]*[4][16]int = [7]*[4][16]int{
 	&LStates,
 }
 
-// Colores de las piezas 
+// Colores de las piezas
 var TetrominoColors [7]Block = [7]Block{
 	Cyan,
 	Yellow,
@@ -419,6 +419,8 @@ type Tetris struct {
 	Held             bool
 	HoldPiece        int // Pieza que detiene el jugador
 	ClearLines       int // Líneas que se han limpiado bajo la logica de tetris
+  Tspin            bool // Saber si se hizo un wallkick para T-spin
+  Combo            int // Cuantos combos lleva
 }
 
 // Función que regresa la siguiente pieza
@@ -512,6 +514,7 @@ func (t *Tetris) applyMovement() {
 
 	if t.It[Space] == 1 {
 		for t.SoftDrop(&t.CurrentPiece) {
+      t.Score += 1
 		}
 
 		t.lockPiece()
@@ -579,9 +582,14 @@ func (t *Tetris) tryRotations(p *Piece, state int, table *[5]Vec2) bool {
 	oldState := p.State
 
 	p.State = state
-	for _, trans := range table {
+	for i, trans := range table {
 		p.X += trans.X
 		p.Y += trans.Y
+    if i != 0 && p.TetrominoType == 2{
+      t.Tspin = true
+    } else {
+      t.Tspin = false
+    }
 
 		if !t.Collides(*p) {
 			return true
@@ -685,6 +693,14 @@ func (t *Tetris) cleanLine() {
 			}
 		}
 	}
+  if lines == 0 {
+    t.Combo = 0
+  } else if t.Combo < 20 {
+    t.Combo = lines
+    if t.Combo > 20 {
+      t.Combo = 20
+    }
+  }
 	t.score(lines)
 	t.upgradeLevel(lines)
 }
@@ -693,13 +709,25 @@ func (t *Tetris) cleanLine() {
 func (t *Tetris) upgradeLevel(lines int) {
 	switch lines {
 	case 1:
-		t.ClearLines++
+    if t.Tspin {
+      t.ClearLines += 8
+    } else {
+		  t.ClearLines++
+    }
 		break
 	case 2:
-		t.ClearLines += 3
+    if t.Tspin {
+      t.ClearLines += 12
+    } else {
+      t.ClearLines += 3
+    }
 		break
 	case 3:
-		t.ClearLines += 5
+    if t.Tspin {
+      t.ClearLines += 16
+    } else {
+      t.ClearLines += 5
+  	}
 		break
 	case 4:
 		t.ClearLines += 8
@@ -714,29 +742,49 @@ func (t *Tetris) upgradeLevel(lines int) {
 }
 
 // Actualiza el puntaje del jugador
-func (t *Tetris) score(lines int) int {
-	switch lines {
-	// Una línea vale 100
-	case 1:
-		return t.Level * 100
-	// 2 líneas valen 300
-	case 2:
-		return t.Level * 300
-		// 3 líneas valen 500
-	case 3:
-		return t.Level * 500
-		// 4 líneas valen 800
-	case 4:
-		if t.Tetris == false {
-			return t.Level * 800
-		} else {
-			// Si la jugada anterior se limpiaron 4 líneas y esta jugada también
-			// la puntuación se multiplica por 1200
-			return t.Level * 1200
-		}
-		// No se limpió ninguna línea
-	default:
-		return 0
+func (t *Tetris) score(lines int){
+  t.Score += 50 * t.Combo * t.Level
+  switch lines {
+    case 0:
+      if t.Tspin {
+        t.Score += t.Level * 400
+      } else {
+        t.Score += 0
+      }
+      break
+  	// Una línea vale 100
+  	case 1:
+      if t.Tspin {
+        t.Score += t.Level * 800 + t.Level * 400
+      } else {
+  		  t.Score += t.Level * 100
+      }
+      break
+  	// 2 líneas valen 300
+  	case 2:
+      if t.Tspin {
+        t.Score += t.Level * 1200 + t.Level * 400
+      } else {
+        t.Score += t.Level * 300
+      }
+      break
+  		// 3 líneas valen 500
+  	case 3:
+      if t.Tspin {
+        t.Score += t.Level * 1600 + t.Level * 400
+      } else {
+  		  t.Score += t.Level * 500
+      }
+      break
+  		// 4 líneas valen 800
+  	case 4:
+  		if t.Tetris == false {
+  			t.Score += t.Level * 800
+  		} else {
+  			// Si la jugada anterior se limpiaron 4 líneas y esta jugada también
+  			// la puntuación se multiplica por 1200
+  			t.Score += t.Level * 1200
+  		}
 	}
 }
 
@@ -768,7 +816,9 @@ func (t *Tetris) moveRight() {
 
 	if t.Collides(t.CurrentPiece) {
 		t.CurrentPiece.X--
-	}
+	} else {
+    t.Tspin = false
+  }
 }
 
 func (t *Tetris) moveLeft() {
@@ -776,7 +826,9 @@ func (t *Tetris) moveLeft() {
 
 	if t.Collides(t.CurrentPiece) {
 		t.CurrentPiece.X++
-	}
+	} else {
+    t.Tspin = false
+  }
 }
 
 // Caída normal
@@ -787,6 +839,8 @@ func (t *Tetris) SoftDrop(p *Piece) bool {
 		p.Y--
 		return false
 	}
+  t.Tspin = false
+  t.Score += 1
 	return true
 }
 
