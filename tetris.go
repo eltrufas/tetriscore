@@ -699,7 +699,7 @@ func (t *Tetris) cleanLine() {
   if lines == 0 {
     t.Combo = 0
   } else if t.Combo < 20 {
-    t.Combo = lines
+    t.Combo += lines
     if t.Combo > 20 {
       t.Combo = 20
     }
