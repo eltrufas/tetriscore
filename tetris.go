@@ -737,7 +737,7 @@ func (t *Tetris) upgradeLevel(lines int) {
 		break
 	}
 	// Los níveles aumentan level * 5 líneas completadas, nível max 15
-	if t.ClearLines >= 5*t.Level && t.Level <= 15 {
+	if t.ClearLines >= 5*t.Level && t.Level < 15 {
 		t.Level++
 		// Aumenta la velocidad de caída de las piezas
 		t.Gravity *= 1.08
