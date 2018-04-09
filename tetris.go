@@ -515,7 +515,7 @@ func (t *Tetris) applyMovement() {
 		t.rotate(CounterClockwise)
 	}
 
-	if t.It[Space] == 1 {
+	if t.It[Space] > 0 {
 		for t.SoftDrop(&t.CurrentPiece) {
       t.Score += 1
 		}
@@ -559,6 +559,11 @@ const (
 // Rotar una pieza
 func (t *Tetris) rotate(direction int) bool {
 	p := &t.CurrentPiece
+
+  if p.TetrominoType == 1 {
+    return false
+  }
+
 
 	cc := 0
 	if direction == CounterClockwise {
