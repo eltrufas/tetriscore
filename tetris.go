@@ -454,7 +454,7 @@ func (t *Tetris) Update(is InputState) {
 			t.startLockTimer()
 		} else {
       t.Tspin = false
-      t.Score += 1
+      //t.Score += 1
     }
 	}
 
@@ -517,7 +517,7 @@ func (t *Tetris) applyMovement() {
 
 	if t.It[Space] > 0 {
 		for t.SoftDrop(&t.CurrentPiece) {
-      t.Score += 1
+      //t.Score += 1
 		}
 
 		t.lockPiece()
@@ -678,7 +678,7 @@ func (t *Tetris) lockPiece() {
 	}
 	t.lockTimerStarted = false
 	t.Held = false
-
+  t.Score += 1
 	t.cleanLine()
 	t.spawnNextPiece()
 }
@@ -870,7 +870,7 @@ func CreateTetris() *Tetris {
 	t.NextIndex = 0
   t.Score = 0
 	t.Gravity = 0.07
-	t.LockTime = 500
+	t.LockTime = 10
 	t.Level = 1
 	t.HoldPiece = -1
 
